@@ -5,7 +5,7 @@ function Welcome({currentUser}) {
   return (
     <Container>
       <img src={Robot} alt='robot'></img>
-      <h1>Welcome <span>{currentUser.username}</span></h1>
+      <h1>Hola <span>{currentUser.username}</span></h1>
       <h3>Please select a chat to start Messaging</h3>
     </Container>
   )
