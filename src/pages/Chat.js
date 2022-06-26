@@ -9,7 +9,7 @@ import ChatContainer from "../Components/ChatContainer";
 import { io } from "socket.io-client";
 
 function Chat() {
-  const socket = useRef();
+  // const socket = useRef();
   const navigate = useNavigate();
   const [contacts, setContacts] = useState([]);
   const [currentUser, setCurrentUser] = useState(undefined);
@@ -27,12 +27,12 @@ function Chat() {
 
     fetchCurrUser();
   }, []);
-  useEffect(() => {
-    if (currentUser) {
-      socket.current = io(host);
-      socket.current.emit("add-user", currentUser._id);
-    }
-  }, [currentUser]);
+  // useEffect(() => {
+  //   if (currentUser) {
+  //     socket.current = io(host);
+  //     socket.current.emit("add-user", currentUser._id);
+  //   }
+  // }, [currentUser]);
 
   useEffect(() => {
     const fetchIsAvatarSet = async () => {
@@ -68,7 +68,7 @@ function Chat() {
           <ChatContainer
             currentChat={currentChat}
             currentUser={currentUser}
-            socket={socket}
+            // socket={socket}
           ></ChatContainer>
         )}
       </div>

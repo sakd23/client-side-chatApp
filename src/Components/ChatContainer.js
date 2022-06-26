@@ -4,55 +4,91 @@ import styled from 'styled-components'
 import ChatInput from './ChatInput'
 import Logout from './Logout'
 import Messages from './Messages'
+import Pusher from 'pusher-js';
+
 import { getAllMessagesRoute, sendMessageRoute } from '../utils/APIRoutes'
 import {v4 as uuidv4} from 'uuid'
 function ChatContainer({currentChat,currentUser,socket}) {
  
     const [messages,setMessages]=useState([])
-    const [arrivalMsg,setArrivalMsg]=useState(null)
+    // const [arrivalMsg,setArrivalMsg]=useState(null)
     const scrollRef=useRef()
+
+    const fetchMsgs= async()=>{
+      const response=await axios.post(getAllMessagesRoute,{
+          from:currentUser._id,
+          to:currentChat._id,
+      })
+      // console.log(response.data)
+      setMessages(response.data)
+  }
+
+
+  
     useEffect(()=>{
-        const fetchMsgs= async()=>{
-            const response=await axios.post(getAllMessagesRoute,{
-                from:currentUser._id,
-                to:currentChat._id,
-            })
-            console.log(response.data)
-            setMessages(response.data)
-        }
+        
         if(currentChat){
             fetchMsgs()
         }
         
         }
     ,[currentChat])
+
+    useEffect(()=>{
+      fetchMsgs();
+        },[])
+
+        useEffect(()=>{
+
+          const pusher = new Pusher('ec7b966a1c5d54153ecd', {
+            cluster: 'ap2'
+          });
+        
+          const channel = pusher.subscribe('messages');
+          channel.bind('inserted', (newMessage)=> {
+            // alert(JSON.stringify(newMessage));
+            const newmsg={
+              message:newMessage.message,
+              fromSelf:newMessage.sender===currentUser._id,
+            }
+            setMessages([...messages,newmsg])
+          });
+        
+          return ()=>{
+        channel.unbind_all();
+        channel.unsubscribe();
+          }
+        },[messages])
+
     const handleSendMsg=async (msg)=>{
         await axios.post(sendMessageRoute,{
             to:currentChat._id,
             from:currentUser._id,
             message:msg,
         })
-        socket.current.emit("send-msg",{
-            to:currentChat._id,
-            from:currentUser._id,
-            message:msg,
-        })
-        const msgs=[...messages]
-        msgs.push({fromSelf:true,message:msg})
-        setMessages(msgs)
-    }
+      }
+       
+        // socket.current.emit("send-msg",{
+        //     to:currentChat._id,
+        //     from:currentUser._id,
+        //     message:msg,
+        // })
+        // const msgs=[...messages]
+        // msgs.push({fromSelf:true,message:msg})
+        // setMessages(msgs)
+    
 
-    useEffect(()=>{
-        if(socket.current){
-            socket.current.on("msg-recieve",(msg)=>{
-             setArrivalMsg({fromSelf:false,message:msg})   
-            })
-        }
-    },[])
+    // useEffect(()=>{
+    //     if(socket.current){
+    //         socket.current.on("msg-recieve",(msg)=>{
+    //          setArrivalMsg({fromSelf:false,message:msg})   
+    //         })
+    //     }
+    // },[])
 
-    useEffect(()=>{
-        arrivalMsg && setMessages((prev)=>[...prev,arrivalMsg])
-    },[arrivalMsg])
+    // useEffect(()=>{
+    //     arrivalMsg && setMessages((prev)=>[...prev,arrivalMsg])
+    // },[arrivalMsg])
 
     useEffect(()=>{
        scrollRef.current?.scrollIntoView({behaviour:"smooth"}) 
